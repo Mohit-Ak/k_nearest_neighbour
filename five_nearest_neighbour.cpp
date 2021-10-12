@@ -25,25 +25,25 @@
 
 using namespace std;
 
-class Points2D{
+class Point{
     /**
      * This class is defines a a data type that represents a point in our program.
      *
      * @param:      x,y represent a point in the cartesian coordinate system.
-     * @return:     object of the type Points2D.
-       Declaration: Points2D(x,y)
+     * @return:     object of the type Point.
+       Declaration: Point(x,y)
      */
     public:
-        Points2D(double x,double y):_x(x),_y(y){
+        Point(double x,double y):_x(x),_y(y){
         }
-        virtual ~Points2D(){
+        virtual ~Point(){
         }
-        double getDist(const Points2D &target_point) const{
+        double getDist(const Point &target_point) const{
             /**
                 Calculates the distance of the given Point(X,Y) from a target point target_point.
                 Note: We do not take the square root of the answer as the actual distance 
                       is not needed for the given problem.
-                @param target_point<Points2D> the target point that is input.
+                @param target_point<Point> the target point that is input.
                 @return a dist<double> that is a representation of the distance between the two points.
             */
             double xDist = (target_point.GetX() - _x);
@@ -60,38 +60,59 @@ class Points2D{
 };
 
 
-class NearestPoint2D{
+class NearestPointsContainer{
         /**
          * This class is defines a a data type where you can add points and get the k nearest neighbors 
          * of a target point.
          *
          * @param:      x,y represent a point in the cartesian coordinate system.
-         * @return:     object of the type NearestPoint2D.
-           Declaration: NearestPoint2D(x,y)
+         * @return:     object of the type NearestPointsContainer.
+           Declaration: NearestPointsContainer(x,y)
      */
     public:
-        NearestPoint2D() {}
-        virtual ~NearestPoint2D() {}
+        NearestPointsContainer() {}
+        virtual ~NearestPointsContainer() {}
         
-        void addPoints(const Points2D &points){
+        void addPoints(const Point &points){
             _points.push_back(points);
         }
         
-        bool getNearestPoints(const Points2D &target_point,vector<Points2D> &nearest_points,int K){
+        bool getNearestPoints(const Point &target_point,vector<Point> &nearest_points,int K){
+            /**
+            * Iterate through the 1000 points.
+            * For every point calculate the distance mertic between the given point and target point.
+            * Note: We do not take the square root of the answer as the actual distance is not needed for the given problem.
+            * Create a priority queue which will hold the K elements where the highest element is always on the top.
+            * Iterate through the list of points.
+            * Push the first 'K' points into the priority queue.
+            * After first 'K' points, push the point into the queue if the distance of the max element in the queue is higher than the distance that between the target and current point.
+            * @param:      target_point- The point with respect to which you find the neighbours.
+            * @param:      nearest_points- The list that contains the k nearest points.
+            * @param:      K- The number of nearest points to find.
+            * @return:     True/False representing if the operation succeeded or failed respectively.
+
+            */
+
+            // Priority Queue that holds the top K points during the loop.
             priority_queue<pair<int,pair<int,int>>>nearest_points_pqueue;
             double close_x,close_y;
-            ofstream near_points_file("near_points_file.txt");
+
+            if(K>_points.size()){ // To check if K is not greater than the number of points.
+                return false;
+            }
+            ofstream near_points_file("near_points_file.txt"); //Opens a pointer to write the points onto the file.
 
             for(Points::iterator itr = _points.begin(); itr != _points.end(); ++itr){
-                double distance= itr->getDist(target_point);
+                double current_point_distance= itr->getDist(target_point);
                 near_points_file << itr->GetX()<<" "<<itr->GetY()<<_blue<<endl;
                 if(nearest_points_pqueue.size()<K){
-                    nearest_points_pqueue.push({distance,{itr->GetX(),itr->GetY()}});
+                     //push the first 'K' points into the queue
+                    nearest_points_pqueue.push({current_point_distance,{itr->GetX(),itr->GetY()}});
                 }else{
-                    int topp = nearest_points_pqueue.top().first;
-                    if(topp > distance){
+                    int highest_distance = nearest_points_pqueue.top().first;
+                    if(current_point_distance < highest_distance){
                         nearest_points_pqueue.pop();
-                        nearest_points_pqueue.push({distance,{itr->GetX(),itr->GetY()}});
+                        nearest_points_pqueue.push({current_point_distance,{itr->GetX(),itr->GetY()}});
                     }
                 }
             }
@@ -107,7 +128,7 @@ class NearestPoint2D{
             return true;
         }
     private:
-        typedef vector<Points2D> Points;
+        typedef vector<Point> Points;
         Points _points;
         string _blue = " 22";
         string _red = " 55";
@@ -117,7 +138,7 @@ class NearestPoint2D{
 
 int main(int argc, const char * argv[]) {
     /**
-     * The main program generates a set of 1000 random points and adds them to the object of NearestPoint2D Class.
+     * The main program generates a set of 1000 random points and adds them to the object of NearestPointsContainer Class.
      * The program calls getNearestPoints() function to get the K nearest points from the set of random points.
      * @param Takes in the value of 'K' and a target point 'P'.
      * @return : Prints the 'K' nearest points from the randomly generated thousand points.
@@ -130,16 +151,26 @@ int main(int argc, const char * argv[]) {
     eng.seed(std::random_device{}());
     // Create a unifom random distribution generator for the given range.
     std::uniform_int_distribution<> dist(-RANDOM_POINTS_MAX_VALUE, RANDOM_POINTS_MAX_VALUE);
-    
-    NearestPoint2D points_container;
+    int target_x;
+    int target_y;
+    int K;
+    cout << "Enter the Target point X(-100 to 100): ";
+    cin >> target_x; 
+    cout << "Enter the Target point Y(-100 to 100): ";
+    cin >> target_y; 
+
+    cout << "Enter the Value of K(1- 1000): ";
+    cin >> K; 
+
+    NearestPointsContainer points_container;
     for(int i = 0; i < RANDOM_POINTS_COUNT; i++) {
         int random_x = dist(eng); //Generate a random number for X value of (X,Y)
         int random_y = dist(eng); //Generate a random number for X value of (X,Y)
-        points_container.addPoints(Points2D(random_x,random_y)); //Create Points2D(X,Y) and add it to the Points_container
+        points_container.addPoints(Point(random_x,random_y)); //Create Point(X,Y) and add it to the Points_container
     }
-    vector<Points2D> nearest_points;
-    points_container.getNearestPoints(Points2D(50,-50),nearest_points,5);
-    for(vector<Points2D>::iterator itr = nearest_points.begin(); itr != nearest_points.end(); ++itr){
+    vector<Point> nearest_points;
+    points_container.getNearestPoints(Point(target_x,target_y),nearest_points,K);
+    for(vector<Point>::iterator itr = nearest_points.begin(); itr != nearest_points.end(); ++itr){
         cout<<"Nearest Point " << itr->GetX()<<" "<<itr->GetY()<<endl;
     }
     cout<<endl;

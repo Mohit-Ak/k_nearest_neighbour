@@ -13,7 +13,7 @@ to the given point.
 - Create a priority queue which will hold the K elements where the highest element is always on the top.
 - Iterate through the list of points.
 - Push the first 'k' points into the priority queue.
-- After first "k" points, push the point into the queue if the distance of the max element in the queue is higher than the distance that between the target and current point.
+- After first 'k' points, push the point into the queue if the distance of the max element in the queue is higher than the distance that between the target and current point.
 
 - The complexity of the algorithm is O(n-klog(n))
 
@@ -25,6 +25,16 @@ to the given point.
 sudo apt-get install gnuplot
 g++ five_nearest_neighbour.cpp -o five_nearest_neighbour
 ./five_nearest_neighbour
+
+Enter the Target point X(-100 to 100): 0
+Enter the Target point Y(-100 to 100): 0
+Enter the Value of K(1- 1000): 5
+Nearest Point 2 -8
+Nearest Point -1 -7
+Nearest Point 2 6
+Nearest Point 1 -6
+Nearest Point 0 -1
+
 gnuplot -persist gnu_plot_script
 ```
 
